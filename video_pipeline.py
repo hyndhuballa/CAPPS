@@ -1,7 +1,6 @@
 import cv2
 from detection import FrameDetector
-from replacement import apply_replacements
-
+from replacement import apply_replacements, replace_poster
 
 def load_video(path):
     cap = cv2.VideoCapture(str(path))
@@ -45,34 +44,40 @@ def apply_user_rules(detections, user):
     for frame_dets in detections:
         frame_decisions = []
 
-        for det in frame_dets:
-            label = det["label"]
+        # filter only relevant objects
+        valid = [d for d in frame_dets if d["label"] in ["cup", "bottle"]]
 
-            # Poster rule
-            if label == "poster":
-                if user["region"] == "India":
-                    det["replace_with"] = "indian_cricket_poster.png"
+        if len(valid) == 0:
+            decisions.append([])
+            continue
 
-            # Drink rule
-            if label in ["cup", "bottle"]:
-                if user["age"] < 18:
-                    det["replace_with"] = "milk.png"
-                else:
-                    det["replace_with"] = "starbucks.png"
+        # ✅ pick largest object (BEST detection)
+        best = max(valid, key=lambda d: (d["bbox"][2]-d["bbox"][0])*(d["bbox"][3]-d["bbox"][1]))
 
-            frame_decisions.append(det)
+        if user["age"] < 18:
+            best["replace_with"] = "milk.png"
+        else:
+            best["replace_with"] = "starbucks.png"
 
+        frame_decisions.append(best)
         decisions.append(frame_decisions)
 
     return decisions
 
 
-def replace_objects(frames, decisions):
+def replace_objects(frames, decisions, user):
     output_frames = []
 
     for frame, dets in zip(frames, decisions):
-        new_frame = apply_replacements(frame, dets)
-        output_frames.append(new_frame)
+
+        # 🔵 Surface replacement (poster)
+        # if user["region"] == "India":
+            # frame = replace_poster(frame)
+
+        # 🟢 Object replacement
+        frame = apply_replacements(frame, dets)
+
+        output_frames.append(frame)
 
     return output_frames
 

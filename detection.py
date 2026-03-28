@@ -28,9 +28,6 @@ class FrameDetector:
 
         # Simple poster approximation
         h, w, _ = frame.shape
-        detections.append({
-            "label": "poster",
-            "bbox": (int(w*0.2), int(h*0.2), int(w*0.8), int(h*0.5))
-        })
+        
 
         return detections

@@ -28,10 +28,10 @@ def main():
     decisions = pipeline.apply_user_rules(detections, user)
 
     print("Replacing content...")
-    modified_frames = pipeline.replace_objects(frames, decisions)
+    modified_frames = pipeline.replace_objects(frames, decisions, user)
 
     print("Rebuilding video...")
-    output_path = video_path.parent / f"output_{args.user}.avi"
+    output_path = video_path.parent / f"output_{args.user}.mp4"
     pipeline.rebuild_video(modified_frames, meta, output_path)
 
     print(f"Done → {output_path}")
